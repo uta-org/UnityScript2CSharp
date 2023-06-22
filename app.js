@@ -1,15 +1,15 @@
 function translateCode() {
-  // Obtiene el texto de entrada desde el textarea
+  // Get the input text from the textarea
   var unityScript = document.getElementById("unityScript").value;
 
-  // Realiza la traducción de campos y funciones
+  // Perform translation of fields and functions
   var fields = translateFields(unityScript);
 
   document.getElementById("csharp").value = fields;
 }
 
 function translateFields(input) {
-  // Función de reemplazo para convertir la declaración de variables a C#
+  // Replacement function to convert variable declaration to C#
   function replaceVariable(match, visibility, name, type, rest) {
     console.log(
       "[Variables] ",
@@ -24,21 +24,21 @@ function translateFields(input) {
       rest + "\n"
     );
 
-    // Determinar si el campo es público
+    // Determine if the field is public
     var isPublic = visibility.includes("public") || visibility === "var";
-    // Determinar si el campo es privado
+    // Determine if the field is private
     var isPrivate = visibility.includes("private");
 
-    // Determinar el sufijo de tipo decimal
+    // Determine the decimal type suffix
     var typeSuffix = "";
 
-    // Verificar si se debe usar "new" para inicialización
+    // Check if "new" should be used for initialization
     var shouldUseNew =
       !["int", "float", "string", "boolean"].includes(type) &&
       rest.includes("=") &&
       !/[A-Za-z]+\.[A-Za-z]+/.test(rest);
 
-    // Construir la declaración de la variable en C#
+    // Construct the variable declaration in C#
     var csharpDeclaration = "";
     if (isPublic) {
       csharpDeclaration += "public ";
@@ -58,18 +58,18 @@ function translateFields(input) {
     return csharpDeclaration;
   }
 
-  // Aplicar la función de reemplazo a la entrada usando la expresión regular
+  // Apply the replacement function to the input using the regular expression
   var output = input.replace(/(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+)(.*?)(?=;)/g, replaceVariable);
 
   // -----------------------------------------------
-  // REEMPLAZAR TIPOS QUE NO HAYAN SIDO REEMPLAZADOS
+  // REPLACE TYPES THAT WERE NOT REPLACED
   // -----------------------------------------------
 
-  // Función de reemplazo para convertir la declaración de variables a C#
+  // Replacement function to convert variable declaration to C#
   function replaceType(match, visibility, name, value, rest) {
-    // Determinar si el campo es público
+    // Determine if the field is public
     var isPublic = visibility.includes("public") || visibility === "var";
-    // Determinar si el campo es privado
+    // Determine if the field is private
     var isPrivate = visibility.includes("private");
 
     console.log(
@@ -85,7 +85,7 @@ function translateFields(input) {
       rest + "\n"
     );
 
-    // Determinar el tipo de variable basado en su valor
+    // Determine the variable type based on its value
     var type = "";
     if (/^(-|)\d+$/.test(value)) {
       type = "int";
@@ -96,10 +96,10 @@ function translateFields(input) {
     } else if (/^["'].*["']$/.test(value)) {
       type = "string";
     } else {
-      type = "unknown"; // Tipo desconocido
+      type = "unknown"; // Unknown type
     }
 
-    // Construir la declaración de la variable en C#
+    // Construct the variable declaration in C#
     var csharpDeclaration = "";
     if (isPublic) {
       csharpDeclaration += "public ";
@@ -113,10 +113,10 @@ function translateFields(input) {
 
   output = output.replace(/(var|public var|private var|protected var)\s+(\w+)\s*=\s*([^;]+)(.*?)(?=;)/g, replaceType);
 
-  // Añadir f al final de los números decimales
+  // Add 'f' suffix to decimal numbers
   output = output.replace(/(\d+|)\.(\d+)/g, "$1.$2f");
 
-  // Reemplazar la declaración de enum para asegurar que sea pública si no tiene decorador de accesibilidad
+  // Replace enum declaration to ensure it is public if it doesn't have an accessibility modifier
   output = output.replace(/enum (\w+)/g, "public enum $1");
 
   output = output.replace(/new\s{2,}(\w+)/g, "new $1");
@@ -151,10 +151,4 @@ function translateFields(input) {
   output = output.replace(/boolean/g, "bool");
 
   return output;
-}
-
-function translateFunctionBody(functionBody) {
-  // You can implement your own logic here to translate the function body
-  // This is just a placeholder implementation that leaves the body unchanged
-  return functionBody;
 }
