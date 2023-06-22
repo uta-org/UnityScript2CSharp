@@ -143,34 +143,6 @@ function translateFields(input) {
       return `${(returnType || 'void')} ${funcName}(${replacedParamGroup})`;
     });
 
-
-  // output = replaceFuncSignature(output);
-
-  // // Reemplazar la declaración de función
-  // output = output.replace(
-  //   /function\s+(\w+)\s*\(\s*((\w+)\s*:\s*(\w+)\s*(,|)\s*)*\s*\)\s*(:|)\s*(\w+)/g,
-  //   function (match, functionName, parameters, returnType) {
-  //     console.log('[Function]\n',
-  //       'match: ', match + '\n',
-  //       'functionName: ', functionName + '\n',
-  //       'parameters: ', parameters + '\n',
-  //       'returnType: ', returnType + '\n');
-
-  //     // Construir la declaración de función en C#
-  //     var csharpDeclaration =
-  //       "public " +
-  //       (!returnType ? 'void' : returnType) +
-  //       " " +
-  //       functionName +
-  //       "(" +
-  //       (!parameters ? '' : parameters) +
-  //       ")";
-  //     return csharpDeclaration;
-  //   }
-  // );
-
-
-
   // Generic types
   output = output.replace(/(\w+)\s*\.\s*<\s*(\w+)\s*>\s*\(\)/g, '$1<$2>()');
 
@@ -180,55 +152,6 @@ function translateFields(input) {
 
   return output;
 }
-
-// function debugFunction(input = undefined) {
-//   const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*(?::\s*(\w+))?/;
-
-//   input = input || "function Interact (x: RaycastHit, y: Hit, a: b): Color";
-
-//   const matches = input.match(regex);
-
-//   if (matches) {
-//     const [, funcName, paramGroup, returnType] = matches;
-
-//     const paramsRegex = /(\w+)\s*:\s*(\w+)/g;
-//     let paramMatches;
-//     const params = [];
-
-//     while ((paramMatches = paramsRegex.exec(paramGroup)) !== null) {
-//       const [, paramName, paramType] = paramMatches;
-//       params.push({ paramName, paramType });
-//     }
-
-//     console.log("Function Name:", funcName);
-//     console.log("Parameters:", params);
-//     console.log("Return Type:", returnType);
-//   }
-// }
-
-// function replaceFuncSignature(input) {
-//   // // const input = "function Interact (x: RaycastHit, y: Hit, a: b): Color";
-//   // const input = "function Interact ()";
-
-//   // Utilizamos la expresión regular para capturar los grupos necesarios
-//   const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*(:|)\s*(\w+)?/;
-//   const matches = input.match(regex);
-
-//   if (matches) {
-//     // Capturamos los grupos individuales
-//     const [, funcName, paramGroup, returnType] = matches;
-
-//     // Reemplazamos la cadena utilizando los grupos capturados
-//     const output = `${(returnType || 'void')} ${funcName}(${paramGroup
-//       .replace(/(\w+)\s*:\s*(\w+)/g, "$2 $1")
-//       .replace(/:\s*/g, "")
-//       .replace(/,/g, ", ")})`;
-
-//     return output;
-//   }
-
-//   return input;
-// }
 
 function translateFunctionBody(functionBody) {
   // You can implement your own logic here to translate the function body
