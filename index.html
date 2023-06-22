@@ -54,11 +54,12 @@
 
           // Determinar el sufijo de tipo decimal
           var typeSuffix = "";
-          
+
           // Verificar si se debe usar "new" para inicialización
           var shouldUseNew =
             !["int", "float", "string", "boolean"].includes(type) &&
-            rest.includes("=") && !/[A-Za-z]+\.[A-Za-z]+/.test(rest);
+            rest.includes("=") &&
+            !/[A-Za-z]+\.[A-Za-z]+/.test(rest);
 
           // Construir la declaración de la variable en C#
           var csharpDeclaration = "";
@@ -68,9 +69,14 @@
             csharpDeclaration += "private ";
           }
 
-          if(shouldUseNew && rest.includes('='))
-            rest = rest.replace('=', '');
-          csharpDeclaration += type + " " + name + (shouldUseNew ? ' = new ' : '') + typeSuffix + rest;
+          if (shouldUseNew && rest.includes("=")) rest = rest.replace("=", "");
+          csharpDeclaration +=
+            type +
+            " " +
+            name +
+            (shouldUseNew ? " = new " : "") +
+            typeSuffix +
+            rest;
 
           return csharpDeclaration;
         }
@@ -139,7 +145,37 @@
         // Reemplazar la declaración de enum para asegurar que sea pública si no tiene decorador de accesibilidad
         output = output.replace(/enum (\w+)/g, "public enum $1");
 
-        output = output.replace(/new\s{2,}(\w+)/g, 'new $1');
+        output = output.replace(/new\s{2,}(\w+)/g, "new $1");
+
+        // ---------------------------------------------------------
+        // FUNCTIONS
+        // ---------------------------------------------------------
+
+        // Reemplazar la declaración de función
+        output = output.replace(
+          /function\s+(\w+)\s*\((.*?)\)\s*:\s*([\w.]+)\s*{/g,
+          function (match, functionName, parameters, returnType) {
+            // Construir la declaración de función en C#
+            var csharpDeclaration =
+              "public " +
+              returnType +
+              " " +
+              functionName +
+              "(" +
+              parameters +
+              ") {";
+            return csharpDeclaration;
+          }
+        );
+
+        // Reemplazar los tipos de UnityScript por sus equivalentes en C#
+        output = output.replace(/:\s*([\w.]+)\s*/g, function (match, type) {
+          // Reemplazar el tipo de UnityScript por su equivalente en C#
+          // var csharpType = convertUnityScriptTypeToCSharp(type);
+          return ": " + type + " ";
+        });
+
+        output = output.replace(/function/g, 'void');
 
         return output;
       }
