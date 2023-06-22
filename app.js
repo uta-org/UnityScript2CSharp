@@ -9,11 +9,6 @@ function translateCode() {
 }
 
 function translateFields(input) {
-  // Expresión regular para encontrar la declaración de variables en UnityScript
-  var regex =
-    /(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+)(.*?)(?=;)/g;
-  // var regex = /(var|public var|private var|protected var)\s+(\w+)\s*=\s*([^;]+)(.*?)(?=;)/g;
-
   // Función de reemplazo para convertir la declaración de variables a C#
   function replaceVariable(match, visibility, name, type, rest) {
     console.log(
@@ -64,14 +59,11 @@ function translateFields(input) {
   }
 
   // Aplicar la función de reemplazo a la entrada usando la expresión regular
-  var output = input.replace(regex, replaceVariable);
+  var output = input.replace(/(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+)(.*?)(?=;)/g, replaceVariable);
 
-  output = output.replace(/boolean/g, "bool");
-
-  //////////// REEMPLAZAR TIPOS QUE NO HAYAN SIDO REEMPLAZADOS
-  //////////// ----------------------------------------------
-  var regexType =
-    /(var|public var|private var|protected var)\s+(\w+)\s*=\s*([^;]+)(.*?)(?=;)/g;
+  // -----------------------------------------------
+  // REEMPLAZAR TIPOS QUE NO HAYAN SIDO REEMPLAZADOS
+  // -----------------------------------------------
 
   // Función de reemplazo para convertir la declaración de variables a C#
   function replaceType(match, visibility, name, value, rest) {
@@ -119,7 +111,7 @@ function translateFields(input) {
     return csharpDeclaration;
   }
 
-  output = output.replace(regexType, replaceType);
+  output = output.replace(/(var|public var|private var|protected var)\s+(\w+)\s*=\s*([^;]+)(.*?)(?=;)/g, replaceType);
 
   // Añadir f al final de los números decimales
   output = output.replace(/(\d+|)\.(\d+)/g, "$1.$2f");
@@ -129,99 +121,114 @@ function translateFields(input) {
 
   output = output.replace(/new\s{2,}(\w+)/g, "new $1");
 
-  // ---------------------------------------------------------
+  // ---------
   // FUNCTIONS
-  // ---------------------------------------------------------
+  // ---------
 
-  debugFunction(output);
+  // debugFunction(output);
 
-  // Reemplazar la declaración de función
-  output = output.replace(
-    /function\s+(\w+)\s*\(\s*((\w+)\s*:\s*(\w+)\s*(,|)\s*)*\s*\)\s*(:|)\s*(\w+)/g,
-    function (match, functionName, parameters, returnType) {
-      console.log('[Function]\n',
-        'match: ', match + '\n',
-        'functionName: ', functionName + '\n',
-        'parameters: ', parameters + '\n',
-        'returnType: ', returnType + '\n');
+  output = output.replace(/function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*:*\s*(\w+)?/g,
+    (match, funcName, paramGroup, returnType) => {
+      console.log('[Functions]\n',
+        'match', match + '\n',
+        'funcName', funcName + '\n',
+        'paramGroup', paramGroup + '\n',
+        'returnType', returnType);
 
-      // Construir la declaración de función en C#
-      var csharpDeclaration =
-        "public " +
-        (!returnType ? 'void' : returnType) +
-        " " +
-        functionName +
-        "(" +
-        (!parameters ? '' : parameters) +
-        ")";
-      return csharpDeclaration;
-    }
-  );
+      const replacedParamGroup = paramGroup
+        .replace(/(\w+)\s*:\s*(\w+)/g, "$2 $1")
+        .replace(/:\s*/g, "")
+        .replace(/,/g, ", ");
+
+      return `${(returnType || 'void')} ${funcName}(${replacedParamGroup})`;
+    });
+
+
+  // output = replaceFuncSignature(output);
+
+  // // Reemplazar la declaración de función
+  // output = output.replace(
+  //   /function\s+(\w+)\s*\(\s*((\w+)\s*:\s*(\w+)\s*(,|)\s*)*\s*\)\s*(:|)\s*(\w+)/g,
+  //   function (match, functionName, parameters, returnType) {
+  //     console.log('[Function]\n',
+  //       'match: ', match + '\n',
+  //       'functionName: ', functionName + '\n',
+  //       'parameters: ', parameters + '\n',
+  //       'returnType: ', returnType + '\n');
+
+  //     // Construir la declaración de función en C#
+  //     var csharpDeclaration =
+  //       "public " +
+  //       (!returnType ? 'void' : returnType) +
+  //       " " +
+  //       functionName +
+  //       "(" +
+  //       (!parameters ? '' : parameters) +
+  //       ")";
+  //     return csharpDeclaration;
+  //   }
+  // );
+
+
 
   // Generic types
   output = output.replace(/(\w+)\s*\.\s*<\s*(\w+)\s*>\s*\(\)/g, '$1<$2>()');
 
-  // // Reemplazar los tipos de UnityScript por sus equivalentes en C#
-  // output = output.replace(/:\s*([\w.]+)\s*/g, function (match, type) {
-  //   // Reemplazar el tipo de UnityScript por su equivalente en C#
-  //   // var csharpType = convertUnityScriptTypeToCSharp(type);
-  //   return ": " + type + " ";
-  // });
-
   output = output.replace(/function/g, 'void');
   output = output.replace(/^#pragma\b.*[\r\n]+/gm, '');
+  output = output.replace(/boolean/g, "bool");
 
   return output;
 }
 
-function debugFunction(input = undefined) {
-  const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*(?::\s*(\w+))?/;
+// function debugFunction(input = undefined) {
+//   const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*(?::\s*(\w+))?/;
 
-  input = input || "function Interact (x: RaycastHit, y: Hit, a: b): Color";
+//   input = input || "function Interact (x: RaycastHit, y: Hit, a: b): Color";
 
-  const matches = input.match(regex);
+//   const matches = input.match(regex);
 
-  if (matches) {
-    const [, funcName, paramGroup, returnType] = matches;
+//   if (matches) {
+//     const [, funcName, paramGroup, returnType] = matches;
 
-    const paramsRegex = /(\w+)\s*:\s*(\w+)/g;
-    let paramMatches;
-    const params = [];
+//     const paramsRegex = /(\w+)\s*:\s*(\w+)/g;
+//     let paramMatches;
+//     const params = [];
 
-    while ((paramMatches = paramsRegex.exec(paramGroup)) !== null) {
-      const [, paramName, paramType] = paramMatches;
-      params.push({ paramName, paramType });
-    }
+//     while ((paramMatches = paramsRegex.exec(paramGroup)) !== null) {
+//       const [, paramName, paramType] = paramMatches;
+//       params.push({ paramName, paramType });
+//     }
 
-    console.log("Function Name:", funcName);
-    console.log("Parameters:", params);
-    console.log("Return Type:", returnType);
-  }
-}
+//     console.log("Function Name:", funcName);
+//     console.log("Parameters:", params);
+//     console.log("Return Type:", returnType);
+//   }
+// }
 
-function replaceString() {
-  const input = "function Interact (x: RaycastHit, y: Hit, a: b): Color";
+// function replaceFuncSignature(input) {
+//   // // const input = "function Interact (x: RaycastHit, y: Hit, a: b): Color";
+//   // const input = "function Interact ()";
 
-  // Utilizamos la expresión regular para capturar los grupos necesarios
-  const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*:\s*(\w+)/;
-  const matches = input.match(regex);
+//   // Utilizamos la expresión regular para capturar los grupos necesarios
+//   const regex = /function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*(:|)\s*(\w+)?/;
+//   const matches = input.match(regex);
 
-  if (matches) {
-    // Capturamos los grupos individuales
-    const [, funcName, paramGroup, returnType] = matches;
+//   if (matches) {
+//     // Capturamos los grupos individuales
+//     const [, funcName, paramGroup, returnType] = matches;
 
-    // Reemplazamos la cadena utilizando los grupos capturados
-    const replacedString = `${returnType} ${funcName}(${paramGroup
-      .replace(/(\w+)\s*:\s*(\w+)/g, "$2 $1")
-      .replace(/:\s*/g, "")
-      .replace(/,/g, ", ")})`;
+//     // Reemplazamos la cadena utilizando los grupos capturados
+//     const output = `${(returnType || 'void')} ${funcName}(${paramGroup
+//       .replace(/(\w+)\s*:\s*(\w+)/g, "$2 $1")
+//       .replace(/:\s*/g, "")
+//       .replace(/,/g, ", ")})`;
 
-    console.log(replacedString);
-  }
-}
+//     return output;
+//   }
 
-debugFunction();
-replaceString();
+//   return input;
+// }
 
 function translateFunctionBody(functionBody) {
   // You can implement your own logic here to translate the function body
