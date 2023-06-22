@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <style>
       body {
+        color: white;
         background-color: #333;
       }
 
@@ -17,6 +18,9 @@
       textarea {
         width: 100%;
         height: calc(50vh - 64px);
+      }
+      
+      textarea, input[type='text'] {
         background-color: #444;
         color: white;
         border: 2px black dashed;
@@ -25,6 +29,10 @@
     <script src="app.js"></script>
   </head>
   <body>
+    <div>
+      Class name: <input type="text" id="fileName">
+    </div>
+    <br>
     <div class="container">
       <textarea
         id="unityScript"
@@ -33,7 +41,7 @@
     </div>
     <br />
     <center>
-      <button onclick="translateCode()">Traducir</button>
+      <button onclick="translateCode(document.getElementById('fileName').value)">Traducir</button>
     </center>
     <br />
     <div class="container">

@@ -1,14 +1,18 @@
-function translateCode() {
+function translateCode(fileName) {
   // Get the input text from the textarea
   var unityScript = document.getElementById("unityScript").value;
 
   // Perform translation of fields and functions
-  var fields = translateFields(unityScript);
+  var code = translate(unityScript);
 
-  document.getElementById("csharp").value = fields;
+  code = `public class ${fileName || '{ReplaceMe}'} : MonoBehaviour {
+  ${code.replace(/\n/g, '\n\t')}
+}`;
+
+  document.getElementById("csharp").value = code;
 }
 
-function translateFields(input) {
+function translate(input) {
   // Replacement function to convert variable declaration to C#
   function replaceVariable(match, visibility, name, type, rest) {
     console.log(
@@ -118,7 +122,6 @@ function translateFields(input) {
 
   // Replace enum declaration to ensure it is public if it doesn't have an accessibility modifier
   output = output.replace(/enum (\w+)/g, "public enum $1");
-
   output = output.replace(/new\s{2,}(\w+)/g, "new $1");
 
   // ---------
