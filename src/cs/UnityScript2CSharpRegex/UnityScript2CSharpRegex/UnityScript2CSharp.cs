@@ -28,6 +28,7 @@ namespace UnityScript2CSharpRegex
 
                 // Determine if the field is public
                 var isPublic = visibility.Contains("public") || visibility == "var";
+
                 // Determine if the field is private
                 var isPrivate = visibility.Contains("private");
 
@@ -35,25 +36,17 @@ namespace UnityScript2CSharpRegex
                 var typeSuffix = "";
 
                 // Check if "new" should be used for initialization
-                var shouldUseNew = !new[] { "int", "float", "string", "bool" }.Contains(type) &&
+                var shouldUseNew = !new[] { "int", "float", "string", "bool", "String", "boolean" }.Contains(type) &&
                                    rest.Contains("=") &&
                                    !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+");
 
                 // Construct the variable declaration in C#
                 var csharpDeclaration = new StringBuilder();
-                if (isPublic)
-                {
-                    csharpDeclaration.Append("public ");
-                }
-                else if (isPrivate)
-                {
-                    csharpDeclaration.Append("private ");
-                }
+                if (isPublic) csharpDeclaration.Append("public ");
+                else if (isPrivate) csharpDeclaration.Append("private ");
 
-                if (shouldUseNew && rest.Contains("="))
-                {
+                if (shouldUseNew && rest.Contains("=")) 
                     rest = rest.Replace("=", "");
-                }
 
                 csharpDeclaration.Append(type)
                     .Append(" ")
@@ -67,11 +60,11 @@ namespace UnityScript2CSharpRegex
 
             // Apply the replacement function to the input using the regular expression
             var output = Regex.Replace(input,
-                @"(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+)(.*?)(?=;)", ReplaceVariable);
+                @"(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+\[*\]*)(.*?)(?=;)", ReplaceVariable);
 
-            // -----------------------------------------------
+            // ------------------------------------
             // REPLACE TYPES THAT WERE NOT REPLACED
-            // -----------------------------------------------
+            // ------------------------------------
 
             // Replacement function to convert variable declaration to C#
             string ReplaceType(Match match)
@@ -87,38 +80,22 @@ namespace UnityScript2CSharpRegex
                 var isPrivate = visibility.Contains("private");
 
                 // Determine the variable type based on its value
-                var type = "";
+                string type;
                 if (Regex.IsMatch(value, @"^(-|)\d+$"))
-                {
                     type = "int";
-                }
                 else if (Regex.IsMatch(value, @"^\d*\.\d+$"))
-                {
                     type = "float";
-                }
-                else if (value == "true" || value == "false")
-                {
+                else if (value is "true" or "false")
                     type = "bool";
-                }
                 else if (Regex.IsMatch(value, @"^[""].*[""]$"))
-                {
                     type = "string";
-                }
                 else
-                {
                     type = "unknown"; // Unknown type
-                }
 
                 // Construct the variable declaration in C#
                 var csharpDeclaration = new StringBuilder();
-                if (isPublic)
-                {
-                    csharpDeclaration.Append("public ");
-                }
-                else if (isPrivate)
-                {
-                    csharpDeclaration.Append("private ");
-                }
+                if (isPublic) csharpDeclaration.Append("public ");
+                else if (isPrivate) csharpDeclaration.Append("private ");
 
                 csharpDeclaration.Append(type)
                     .Append(" ")
@@ -138,7 +115,13 @@ namespace UnityScript2CSharpRegex
 
             // Replace enum declaration to ensure it is public if it doesn't have an accessibility modifier
             output = Regex.Replace(output, @"enum (\w+)", "public enum $1");
+
+            // Solve unneeded spaces between new declarations
             output = Regex.Replace(output, @"new\s{2,}(\w+)", "new $1");
+
+            // Solve for(public int...
+            output = Regex.Replace(output, @"for\(public (\w+)", "for($1");
+
 
             // ---------
             // FUNCTIONS
@@ -146,7 +129,7 @@ namespace UnityScript2CSharpRegex
 
             // debugFunction(output);
 
-            output = Regex.Replace(output, @"function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\s*(?:,|\s)*)*)\)\s*:*\s*(\w+)?",
+            output = Regex.Replace(output, @"function\s+(\w+)\s*\(\s*((?:\w+\s*:\s*\w+\[*\]*\s*(?:,|\s)*)*)\)\s*:*\s*(\w+\[*\]*)?",
                 match =>
                 {
                     var funcName = match.Groups[1].Value;
@@ -159,7 +142,7 @@ namespace UnityScript2CSharpRegex
                                       "paramGroup: " + paramGroup + "\n" +
                                       "returnType: " + returnType);
 
-                    var replacedParamGroup = Regex.Replace(paramGroup, @"(\w+)\s*:\s*(\w+)", "$2 $1")
+                    var replacedParamGroup = Regex.Replace(paramGroup, @"(\w+)\s*:\s*(\w+\[*\]*)", "$2 $1")
                         .Replace(":", "")
                         .Replace(",", ", ");
 
@@ -172,6 +155,22 @@ namespace UnityScript2CSharpRegex
             output = output.Replace("function", "void");
             output = Regex.Replace(output, @"^#pragma\b.*[\r\n]+", "");
             output = output.Replace("boolean", "bool");
+
+            // Replace GetComponent(type) to GetComponent<type>()
+            output = Regex.Replace(output, @"GetComponent(\w+)*\((\w+)\)", "GetComponent$1<$2>()");
+
+            // Replace attributes
+            output = Regex.Replace(output, @"(?<!\/\/.*)@(?!(?:.*"")|(?:.*@.*\b))(\w+)", "[$1]");
+
+            // Replace new Array -> new List<object>
+            output = output.Replace("new Array()", "new List<object>()");
+
+            // Remove Array(...)
+            output = Regex.Replace(output, @"Array\((.+?)\)\.ToBuiltin\(.+?\)", "$1");
+
+            output = output.Replace("public unknown", "var");
+
+            output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
             return output;
         }
