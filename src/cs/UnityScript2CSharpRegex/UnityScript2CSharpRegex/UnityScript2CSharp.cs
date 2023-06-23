@@ -18,6 +18,70 @@ namespace UnityScript2CSharpRegex
 
         private static string Translate(string input)
         {
+            var multiline = RegexOptions.Singleline | RegexOptions.Multiline;
+
+            string ReplaceVariableTypesInsideFunctions(Match match)
+            {
+
+                // Obtener el bloque de la función Update
+                var signature = match.Groups[1].Value;
+                var funcBlock = match.Groups[2].Value;
+
+                Console.WriteLine($"[Block]\n" +
+                                  $"signature: {signature}\n" +
+                                  $"funcBlock\n{funcBlock}");
+
+                // Patrón para encontrar las variables var
+                var varsPattern = @"var\s+(\w+)\s*:\s*([\w.]+\[*\]*)(.*?)(?=;)";
+                //var varsPattern = @"var\s+(\w+)\s*(:\s*(\w+))?\s*=\s*(.*?);";
+
+                //Console.WriteLine(funcBlock);
+
+                //// Coincidencias para las variables var
+                //var varsMatches = Regex.Matches(funcBlock, varsPattern, multiline);
+
+                var blockUpdated = Regex.Replace(funcBlock, varsPattern, (m) =>
+                {
+                    var name = m.Groups[1].Value;
+                    var type = m.Groups[2].Value;
+                    var rest = m.Groups[3].Value;
+
+                    Console.WriteLine($"[ScopedVariables]\n" +
+                                      $"name: {name}\n" +
+                                      $"type: {type}\n" +
+                                      $"rest: {rest}");
+
+                    var shouldUseNew = ShouldUseNew(type, rest);
+
+                    // Construct the variable declaration in C#
+                    var csharpDeclaration = new StringBuilder();
+
+                    if (shouldUseNew && rest.Contains("="))
+                        rest = rest.Replace("=", "");
+
+                    csharpDeclaration.Append(type)
+                        .Append(" ")
+                        .Append(name)
+                        .Append(shouldUseNew ? " = new " : "")
+                        .Append(rest);
+
+                    var s = csharpDeclaration.ToString();
+                    Console.WriteLine(s);
+                    return s;
+                }, multiline);
+
+                return $@"{signature} {{
+    {blockUpdated}
+}}";
+            }
+
+            var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
+
+            string output = input;
+
+            if (Regex.Match(input, regexFunctionBlock, multiline).Success)
+                output = Regex.Replace(output, regexFunctionBlock, ReplaceVariableTypesInsideFunctions, multiline);
+
             // Replacement function to convert variable declaration to C#
             string ReplaceVariable(Match match)
             {
@@ -25,6 +89,13 @@ namespace UnityScript2CSharpRegex
                 var name = match.Groups[2].Value;
                 var type = match.Groups[3].Value;
                 var rest = match.Groups[4].Value;
+
+
+                Console.WriteLine($"[Variable]\n" +
+                                  $"visibility: {visibility}\n" +
+                                  $"name: {name}\n" +
+                                  $"type: {type}\n" +
+                                  $"rest: {rest}");
 
                 // Determine if the field is public
                 var isPublic = visibility.Contains("public") || visibility == "var";
@@ -36,16 +107,14 @@ namespace UnityScript2CSharpRegex
                 var typeSuffix = "";
 
                 // Check if "new" should be used for initialization
-                var shouldUseNew = !new[] { "int", "float", "string", "bool", "String", "boolean" }.Contains(type) &&
-                                   rest.Contains("=") &&
-                                   !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+");
+                var shouldUseNew = ShouldUseNew(type, rest);
 
                 // Construct the variable declaration in C#
                 var csharpDeclaration = new StringBuilder();
                 if (isPublic) csharpDeclaration.Append("public ");
                 else if (isPrivate) csharpDeclaration.Append("private ");
 
-                if (shouldUseNew && rest.Contains("=")) 
+                if (shouldUseNew && rest.Contains("="))
                     rest = rest.Replace("=", "");
 
                 csharpDeclaration.Append(type)
@@ -59,7 +128,7 @@ namespace UnityScript2CSharpRegex
             }
 
             // Apply the replacement function to the input using the regular expression
-            var output = Regex.Replace(input,
+            output = Regex.Replace(output,
                 @"(var|public var|private var|protected var)\s+(\w+)\s*:\s*([\w.]+\[*\]*)(.*?)(?=;)", ReplaceVariable);
 
             // ------------------------------------
@@ -73,6 +142,12 @@ namespace UnityScript2CSharpRegex
                 var name = match.Groups[2].Value;
                 var value = match.Groups[3].Value;
                 var rest = match.Groups[4].Value;
+
+                Console.WriteLine($"[Types]\n" +
+                                  $"visibility: {visibility}\n" +
+                                  $"name: {name}\n" +
+                                  $"value: {value}\n" +
+                                  $"rest: {rest}");
 
                 // Determine if the field is public
                 var isPublic = visibility.Contains("public") || visibility == "var";
@@ -172,7 +247,16 @@ namespace UnityScript2CSharpRegex
 
             output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
+            output = Regex.Replace(output, @"static (\w+)", "$1 static");
+
             return output;
+        }
+
+        private static bool ShouldUseNew(string type, string rest)
+        {
+            return !new[] { "int", "float", "string", "bool", "String", "boolean" }.Contains(type) &&
+                   rest.Contains("=") &&
+                   !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+");
         }
 
         private static string GetString(this string str, string rep)

@@ -5,6 +5,7 @@
 // TODO: output path
 
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 using UnityScript2CSharpRegex;
 using static UnityScript2CSharpRegex.Properties.Resources;
 
@@ -54,25 +55,53 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-function Awake() {
-	gun = getPrimaryGunscript();
-	upgrades =Array(GetComponentsInChildren(Upgrade)).ToBuiltin(Upgrade);
-	var tempArr = new Array();
-	upgradesApplied = new boolean[upgrades.length];
-	// Initialize array of applied;
-	for(var i = 0; i < upgrades.length ; i ++) {
-		upgradesApplied[i] = upgrades[i].applied;
-		if(upgrades[i].showInStore){
-			tempArr.Push(upgrades[i]);
-		}
-	}	
-	storeUpgrades = tempArr.ToBuiltin(Upgrade);
-	// Create Display string for gunClass 
-	weaponClassName = weaponClass.ToString().Replace(""_"", "" "" );
+var length1 : float;
+var width1 : float;
+var scale : boolean = false;
+
+function Update(a: b, c: d){
+	var temp : float;
+	var temp2 : float;
+	
+	var hit : RaycastHit;
+	var layerMask = 1 << PlayerWeapons.playerLayer;
 }
 ";
 
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
+
+    //// Patrón para encontrar las variables var dentro de la función
+    //var patron = @"function\s+\w+\(.*\)\s*{(.*?)^}";
+
+    //// Coincidencia para la función Update
+    //var coincidencia = Regex.Match(input, patron, RegexOptions.Singleline | RegexOptions.Multiline);
+
+    //if (coincidencia.Success)
+    //{
+    //    // Obtener el bloque de la función Update
+    //    var bloqueUpdate = coincidencia.Groups[1].Value;
+
+    //    // Patrón para encontrar las variables var
+    //    var patronVariables = @"var\s+(\w+)\s*(:\s*(\w+))?(?:\s*=\s*(.*?))?;";
+    //    //                         var\s+(\w+)\s*(:\s*(\w+))?\s*=\s*(.*?);
+
+
+    //    // Coincidencias para las variables var
+    //    var coincidenciasVariables = Regex.Matches(bloqueUpdate, patronVariables, RegexOptions.Multiline);
+
+    //    foreach (Match coincidenciaVariable in coincidenciasVariables)
+    //    {
+    //        var nombreVariable = coincidenciaVariable.Groups[1].Value;
+    //        var tipoVariable = coincidenciaVariable.Groups[2].Value;
+    //        var valorVariable = coincidenciaVariable.Groups[3].Value;
+
+    //        Console.WriteLine($"Variable: {nombreVariable}, Tipo: {tipoVariable}, Valor: {valorVariable}");
+    //    }
+    //}
+    //else
+    //{
+    //    Console.WriteLine("No se encontró la función Update");
+    //}
 }
 
 TranslateExample();
