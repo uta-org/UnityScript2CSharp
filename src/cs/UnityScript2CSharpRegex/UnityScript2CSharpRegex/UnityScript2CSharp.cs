@@ -11,6 +11,8 @@ namespace UnityScript2CSharpRegex
             var code = Translate(unityScript);
 
             code =
+                $"using System;\n" +
+                $"using UnityEngine;\n" +
                 $"public class {fileName.GetString("{ReplaceMe}")} : MonoBehaviour\n{{\n\t{code.Replace("\n", "\n\t")}\n}}";
 
             return code;
@@ -38,7 +40,9 @@ namespace UnityScript2CSharpRegex
                 //Console.WriteLine(funcBlock);
 
                 //// Coincidencias para las variables var
-                //var varsMatches = Regex.Matches(funcBlock, varsPattern, multiline);
+                var varsMatches = Regex.Matches(funcBlock, varsPattern, RegexOptions.Multiline);
+
+                //Console.WriteLine($"Count: {varsMatches.Count}");
 
                 var blockUpdated = Regex.Replace(funcBlock, varsPattern, (m) =>
                 {
@@ -77,10 +81,12 @@ namespace UnityScript2CSharpRegex
 
             var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
 
-            string output = input;
+            var output = input;
 
             if (Regex.Match(input, regexFunctionBlock, multiline).Success)
                 output = Regex.Replace(output, regexFunctionBlock, ReplaceVariableTypesInsideFunctions, multiline);
+
+            Console.WriteLine(output);
 
             // Replacement function to convert variable declaration to C#
             string ReplaceVariable(Match match)
@@ -89,7 +95,6 @@ namespace UnityScript2CSharpRegex
                 var name = match.Groups[2].Value;
                 var type = match.Groups[3].Value;
                 var rest = match.Groups[4].Value;
-
 
                 Console.WriteLine($"[Variable]\n" +
                                   $"visibility: {visibility}\n" +
@@ -195,7 +200,7 @@ namespace UnityScript2CSharpRegex
             output = Regex.Replace(output, @"new\s{2,}(\w+)", "new $1");
 
             // Solve for(public int...
-            output = Regex.Replace(output, @"for\(public (\w+)", "for($1");
+            output = Regex.Replace(output, @"for\s*\(\s*public (\w+)", "for($1");
 
 
             // ---------
@@ -256,7 +261,8 @@ namespace UnityScript2CSharpRegex
         {
             return !new[] { "int", "float", "string", "bool", "String", "boolean" }.Contains(type) &&
                    rest.Contains("=") &&
-                   !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+");
+                   !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+") &&
+                   !Regex.IsMatch(rest, @"\[.+?\]");
         }
 
         private static string GetString(this string str, string rep)

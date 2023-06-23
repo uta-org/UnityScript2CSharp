@@ -55,21 +55,23 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-var length1 : float;
-var width1 : float;
-var scale : boolean = false;
-
-function Update(a: b, c: d){
-	var temp : float;
-	var temp2 : float;
-	
-	var hit : RaycastHit;
-	var layerMask = 1 << PlayerWeapons.playerLayer;
+function Start() {
+	if (!isPrimaryWeapon) {
+		gunActive = false;
+		var wpns = new Array();
+		wpns = this.GetComponents(GunScript);
+		for (var p: int = 0; p < wpns.length; p++) {
+			var g: GunScript = wpns[p] as GunScript;
+			if (g.isPrimaryWeapon) {
+				primaryWeapon = g;
+			}
+		}
+	}
 }
 ";
 
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-//TranslateExample();
-TranslateProject();
+TranslateExample();
+//TranslateProject();
