@@ -13,6 +13,9 @@ namespace UnityScript2CSharpRegex
             code =
                 $"using System;\n" +
                 $"using UnityEngine;\n" +
+                $"using System.Collections.Generic;\n" +
+                $"using Random = UnityEngine.Random;\n" +
+                $"\n" +
                 $"public class {fileName.GetString("{ReplaceMe}")} : MonoBehaviour\n{{\n\t{code.Replace("\n", "\n\t")}\n}}";
 
             return code;
@@ -76,19 +79,18 @@ namespace UnityScript2CSharpRegex
                 }, multiline);
 
                 return $@"{signature} {{
-    {blockUpdated}
-}}";
+    {blockUpdated}";
             }
 
             //var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
-            var regexFunctionBlock =   @"(function\s+\w+\(.*?\)\s*){(.*?^})";
+            var regexFunctionBlock = @"(function\s+\w+\(.*?\)\s*){(.*?^})";
 
             var output = input;
 
             if (Regex.Match(input, regexFunctionBlock, multiline).Success)
                 output = Regex.Replace(output, regexFunctionBlock, ReplaceVariableTypesInsideFunctions, multiline);
 
-            Console.WriteLine(output);
+            //Console.WriteLine(output);
 
             // Replacement function to convert variable declaration to C#
             string ReplaceVariable(Match match)
@@ -150,6 +152,8 @@ namespace UnityScript2CSharpRegex
                 var value = match.Groups[3].Value;
                 var rest = match.Groups[4].Value;
 
+                var mm = match.Value;
+
                 Console.WriteLine($"[Types]\n" +
                                   $"visibility: {visibility}\n" +
                                   $"name: {name}\n" +
@@ -157,7 +161,7 @@ namespace UnityScript2CSharpRegex
                                   $"rest: {rest}");
 
                 // Determine if the field is public
-                var isPublic = visibility.Contains("public") || visibility == "var";
+                var isPublic = visibility.Contains("public") || (visibility == "var" && mm.Contains(":"));
                 // Determine if the field is private
                 var isPrivate = visibility.Contains("private");
 
@@ -172,7 +176,7 @@ namespace UnityScript2CSharpRegex
                 else if (Regex.IsMatch(value, @"^[""].*[""]$"))
                     type = "string";
                 else
-                    type = "unknown"; // Unknown type
+                    type = "var"; // Unknown type
 
                 // Construct the variable declaration in C#
                 var csharpDeclaration = new StringBuilder();
@@ -255,6 +259,9 @@ namespace UnityScript2CSharpRegex
             output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
             output = Regex.Replace(output, @"static (\w+)", "$1 static");
+
+            // for into foreach
+            output = Regex.Replace(output, @"for\s*\((.+?) in", "foreach($1 in");
 
             return output;
         }

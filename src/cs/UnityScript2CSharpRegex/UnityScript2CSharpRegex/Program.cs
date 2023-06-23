@@ -5,7 +5,6 @@
 // TODO: output path
 
 using System.IO.Compression;
-using System.Text.RegularExpressions;
 using UnityScript2CSharpRegex;
 using static UnityScript2CSharpRegex.Properties.Resources;
 
@@ -55,18 +54,11 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-function Start() {
-	if (!isPrimaryWeapon) {
-		gunActive = false;
-		var wpns = new Array();
-		wpns = this.GetComponents(GunScript);
-		for (var p: int = 0; p < wpns.length; p++) {
-			var g: GunScript = wpns[p] as GunScript;
-			if (g.isPrimaryWeapon) {
-				primaryWeapon = g;
-			}
-		}
-	}
+function SprayDirection() {
+	var vx = (1 - 2 * Random.value) * actualSpread;
+	var vy = (1 - 2 * Random.value) * actualSpread;
+	var vz = 1.0;
+	return weaponCam.transform.TransformDirection(Vector3(vx, vy, vz));
 }
 ";
 
