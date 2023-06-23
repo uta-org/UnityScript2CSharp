@@ -65,5 +65,5 @@ function SprayDirection() {
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-TranslateExample();
-//TranslateProject();
+//TranslateExample();
+TranslateProject();

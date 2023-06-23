@@ -5,6 +5,8 @@ namespace UnityScript2CSharpRegex
 {
     public static class UnityScript2CSharp
     {
+        // TODO: new Vectors, local variables, IEnumerators, unnasigned local vars...
+
         public static string TranslateCode(string unityScript, string? fileName = null)
         {
             // Perform translation of fields and functions
@@ -27,8 +29,7 @@ namespace UnityScript2CSharpRegex
 
             string ReplaceVariableTypesInsideFunctions(Match match)
             {
-
-                // Obtener el bloque de la función Update
+                // Get function block and signature
                 var signature = match.Groups[1].Value;
                 var funcBlock = match.Groups[2].Value;
 
@@ -37,16 +38,8 @@ namespace UnityScript2CSharpRegex
                                   $"-----------------------\n" +
                                   $"funcBlock\n{funcBlock}");
 
-                // Patrón para encontrar las variables var
+                // Pattern to find vars
                 var varsPattern = @"var\s+(\w+)\s*:\s*([\w.]+\[*\]*)(.*?)(?=;)";
-                //var varsPattern = @"var\s+(\w+)\s*(:\s*(\w+))?\s*=\s*(.*?);";
-
-                //Console.WriteLine(funcBlock);
-
-                // Coincidencias para las variables var
-                var varsMatches = Regex.Matches(funcBlock, varsPattern);
-
-                Console.WriteLine($"Count: {varsMatches.Count}");
 
                 var blockUpdated = Regex.Replace(funcBlock, varsPattern, (m) =>
                 {
@@ -245,7 +238,7 @@ namespace UnityScript2CSharpRegex
             // Replace GetComponent(type) to GetComponent<type>()
             output = Regex.Replace(output, @"GetComponent(\w+)*\((\w+)\)", "GetComponent$1<$2>()");
 
-            // Replace attributes
+            // Replace attributes // TODO: fails if several with , or namespaces .
             output = Regex.Replace(output, @"(?<!\/\/.*)@(?!(?:.*"")|(?:.*@.*\b))(\w+)", "[$1]");
 
             // Replace new Array -> new List<object>
@@ -254,14 +247,14 @@ namespace UnityScript2CSharpRegex
             // Remove Array(...)
             output = Regex.Replace(output, @"Array\((.+?)\)\.ToBuiltin\(.+?\)", "$1");
 
-            output = output.Replace("public unknown", "var");
-
             output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
             output = Regex.Replace(output, @"static (\w+)", "$1 static");
 
             // for into foreach
             output = Regex.Replace(output, @"for\s*\((.+?) in", "foreach($1 in");
+
+            output = output.Replace(" String ", " string ");
 
             return output;
         }
