@@ -5,7 +5,7 @@ namespace UnityScript2CSharpRegex
 {
     public static class UnityScript2CSharp
     {
-        // TODO: new Vectors, local variables, IEnumerators, unnasigned local vars...
+        // TODO: new (Vectors, Color, Rect, Quaternion), local variables, IEnumerators, unnasigned local vars...
 
         public static string TranslateCode(string unityScript, string? fileName = null)
         {
@@ -76,7 +76,7 @@ namespace UnityScript2CSharpRegex
             }
 
             //var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
-            var regexFunctionBlock = @"(function\s+\w+\(.*?\)\s*){(.*?^})";
+            var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
 
             var output = input;
 
@@ -238,8 +238,10 @@ namespace UnityScript2CSharpRegex
             // Replace GetComponent(type) to GetComponent<type>()
             output = Regex.Replace(output, @"GetComponent(\w+)*\((\w+)\)", "GetComponent$1<$2>()");
 
+            output = Regex.Replace(output, @"AddComponent(\w+)*\((\w+)\)", "AddComponent$1<$2>()");
+
             // Replace attributes // TODO: fails if several with , or namespaces .
-            output = Regex.Replace(output, @"(?<!\/\/.*)@(?!(?:.*"")|(?:.*@.*\b))(\w+)", "[$1]");
+            output = Regex.Replace(output, @"(?<!\/\/.*)@(?!(?:.*"")|(?:.*@.*\b))([\w\.]+)", "[$1]");
 
             // Replace new Array -> new List<object>
             output = output.Replace("new Array()", "new List<object>()");
@@ -264,7 +266,8 @@ namespace UnityScript2CSharpRegex
             return !new[] { "int", "float", "string", "bool", "String", "boolean" }.Contains(type) &&
                    rest.Contains("=") &&
                    !Regex.IsMatch(rest, @"[A-Za-z]+\.[A-Za-z]+") &&
-                   !Regex.IsMatch(rest, @"\[.+?\]");
+                   !Regex.IsMatch(rest, @"\[.+?\]") &&
+                   !Regex.IsMatch(rest, @"\.");
         }
 
         private static string GetString(this string str, string rep)

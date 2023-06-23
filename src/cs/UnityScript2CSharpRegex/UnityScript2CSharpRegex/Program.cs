@@ -54,11 +54,8 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-function SprayDirection() {
-	var vx = (1 - 2 * Random.value) * actualSpread;
-	var vy = (1 - 2 * Random.value) * actualSpread;
-	var vz = 1.0;
-	return weaponCam.transform.TransformDirection(Vector3(vx, vy, vz));
+function Awake () {
+	var values : MovementValues = this.GetComponent(MovementValues);
 }
 ";
 
