@@ -5,7 +5,7 @@ namespace UnityScript2CSharpRegex
 {
     public static class UnityScript2CSharp
     {
-        // TODO: new (Vectors, Color, Rect, Quaternion), local variables, IEnumerators, unnasigned local vars...
+        // TODO: local variables, unassigned local vars...
 
         public static string TranslateCode(string unityScript, string? fileName = null)
         {
@@ -232,31 +232,70 @@ namespace UnityScript2CSharpRegex
             output = Regex.Replace(output, @"(\w+)\s*\.\s*<\s*(\w+)\s*>\s*\(\)", "$1<$2>()");
 
             output = output.Replace("function", "void");
-            output = Regex.Replace(output, @"^#pragma\b.*[\r\n]+", "");
             output = output.Replace("boolean", "bool");
+
+            // Remove #pragma...
+            output = Regex.Replace(output, @"^#pragma\b.*[\r\n]+", "");
 
             // Replace GetComponent(type) to GetComponent<type>()
             output = Regex.Replace(output, @"GetComponent(\w+)*\((\w+)\)", "GetComponent$1<$2>()");
 
             output = Regex.Replace(output, @"AddComponent(\w+)*\((\w+)\)", "AddComponent$1<$2>()");
 
-            // Replace attributes // TODO: fails if several with , or namespaces .
+            // Replace attributes // TODO: fails if several with , ? (check)
             output = Regex.Replace(output, @"(?<!\/\/.*)@(?!(?:.*"")|(?:.*@.*\b))([\w\.]+)", "[$1]");
 
-            // Replace new Array -> new List<object>
+            // Replace new Array -> new List<object> // TODO: this should be improved
             output = output.Replace("new Array()", "new List<object>()");
 
             // Remove Array(...)
             output = Regex.Replace(output, @"Array\((.+?)\)\.ToBuiltin\(.+?\)", "$1");
 
+            // Create a new array reference (?)
             output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
+            // Reorder static public into public static (ie)
             output = Regex.Replace(output, @"static (\w+)", "$1 static");
 
             // for into foreach
             output = Regex.Replace(output, @"for\s*\((.+?) in", "foreach($1 in");
 
             output = output.Replace(" String ", " string ");
+
+            // Write keyword 'new', between (, +, -, * or / for Vectors, Color, Rect and Quaternion types.
+            output = Regex.Replace(output, @"(\(|\*|\+|\-|\/)\s*(Vector.|Color|Rect|Quaternion)", "$1 new $2");
+
+            output = output.Replace("( new", "(new");
+
+            #region "Solve IEnumerator"
+            var regexEnumeratorBlock = @"(void\s+\w+\s*\(.*?\)\s*){(.*?^})"; // TODO: this should be improved, because ^} is not true in case of identation
+
+            var matches = Regex.Matches(output, regexEnumeratorBlock, multiline);
+            if (matches.Count > 0)
+            {
+                matches.ToList().ForEach(match =>
+                {
+                    var signature = match.Groups[1].Value;
+                    var block = match.Groups[2].Value;
+
+                    if (!block.Contains("yield")) 
+                        return;
+
+                    // If contains yield in the function block when it means that we are inside an IEnumerator
+                    var newBlock = block;
+                    var newSignature = signature.Replace("void", "IEnumerator");
+
+                    newBlock = newBlock.Replace("yield ", "yield new ");
+                    newBlock = newBlock.Replace("return;", "yield break;");
+
+                    output = output.Replace(signature, newSignature);
+                    output = output.Replace(block, newBlock);
+                });
+            }
+            #endregion
+
+            // Remove dupe new new
+            output = output.Replace("new new ", "new ");
 
             return output;
         }

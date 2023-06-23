@@ -54,13 +54,140 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-function Awake () {
-	var values : MovementValues = this.GetComponent(MovementValues);
+function Comparison(x: RaycastHit, y: RaycastHit): int {
+	return Mathf.Sign(x.distance - y.distance);
+}
+
+function SprayDirection() {
+	var vx = (1 - 2 * Random.value) * actualSpread;
+	var vy = (1 - 2 * Random.value) * actualSpread;
+	var vz = 1.0;
+	return weaponCam.transform.TransformDirection(Vector3(vx, vy, vz));
+}
+
+function SprayDirection(dir: Vector3) {
+	var vx = (1 - 2 * Random.value) * actualSpread;
+	var vy = (1 - 2 * Random.value) * actualSpread;
+	var vz = (1 - 2 * Random.value) * actualSpread;
+	return dir + Vector3(vx, vy, vz);
+}
+
+function Reload() {
+	if (ammoLeft >= ammoPerClip || clips <= 0 || !gunActive || Avoidance.collided) {
+		return;
+	}
+	reloadCancel = false;
+	idleTime = 0;
+	aim1.canSprint = PlayerWeapons.PW.reloadWhileSprinting;
+	if (progressiveReload) {
+		ProgReload();
+		return;
+	}
+
+	if (reloading)
+		return;
+
+	//aim1.canSwitchWeaponAim = false;
+	if (aim1.canAim) {
+		aim1.canAim = false;
+		aim = true;
+	}
+	if (gunType == gunTypes.spray) {
+		if (GetComponent.< AudioSource > ()) {
+			if (GetComponent.< AudioSource > ().clip == loopSound && GetComponent.< AudioSource > ().isPlaying) {
+				GetComponent.< AudioSource > ().Stop();
+			}
+		}
+	}
+	reloading = true;
+	if (secondaryWeapon != null) {
+		secondaryWeapon.reloading = true;
+	} else if (!isPrimaryWeapon) {
+		primaryWeapon.reloading = true;
+	}
+	var tempEmpty: boolean;
+	yield WaitForSeconds(waitforReload);
+	if (reloadCancel) {
+		return;
+	}
+
+	if (isPrimaryWeapon) {
+		BroadcastMessage(""ReloadAnimEarly"", SendMessageOptions.DontRequireReceiver);
+		if (ammoLeft >= ammoPerShot) {
+			tempEmpty = false;
+			BroadcastMessage(""ReloadAnim"", reloadTime, SendMessageOptions.DontRequireReceiver);
+		} else {
+			tempEmpty = true;
+			BroadcastMessage(""ReloadEmpty"", emptyReloadTime, SendMessageOptions.DontRequireReceiver);
+		}
+	} else {
+		BroadcastMessage(""SecondaryReloadAnimEarly"", SendMessageOptions.DontRequireReceiver);
+		if (ammoLeft >= ammoPerShot) {
+			tempEmpty = false;
+			BroadcastMessage(""SecondaryReloadAnim"", reloadTime, SendMessageOptions.DontRequireReceiver);
+		} else {
+			tempEmpty = true;
+			BroadcastMessage(""SecondaryReloadEmpty"", emptyReloadTime, SendMessageOptions.DontRequireReceiver);
+		}
+	}
+
+	// Wait for reload time first - then add more bullets!
+	if (ammoLeft > ammoPerShot) {
+		yield WaitForSeconds(reloadTime);
+	} else {
+		yield WaitForSeconds(emptyReloadTime);
+	}
+	if (reloadCancel) {
+		return;
+	}
+	reloading = false;
+	if (secondaryWeapon != null) {
+		secondaryWeapon.reloading = false;
+	} else if (!isPrimaryWeapon) {
+		primaryWeapon.reloading = false;
+	}
+	// We have a clip left reload
+	if (ammoType == ammoTypes.byClip) {
+		if (clips > 0) {
+			if (!infiniteAmmo)
+				clips--;
+			ammoLeft = ammoPerClip;
+		}
+	} else if (ammoType == ammoTypes.byBullet) {
+		if (clips > 0) {
+			if (clips > ammoPerClip) {
+				if (!infiniteAmmo)
+					clips -= ammoPerClip - ammoLeft;
+
+				ammoLeft = ammoPerClip;
+			} else {
+				var ammoVal: float = Mathf.Clamp(ammoPerClip, clips, ammoLeft + clips);
+				if (!infiniteAmmo)
+					clips -= (ammoVal - ammoLeft);
+
+				ammoLeft = ammoVal;
+			}
+		}
+	}
+	if (!tempEmpty && addOneBullet) {
+		if (ammoType == ammoTypes.byBullet && clips > 0) {
+			ammoLeft += 1;
+			clips -= 1;
+		}
+	}
+	if (aim)
+		aim1.canAim = true;
+	aim1.canSprint = true;
+	//aim1.canSwitchWeaponAim = true;
+	SendMessage(""UpdateAmmo"", ammoLeft, SendMessageOptions.DontRequireReceiver);
+	SendMessage(""UpdateClips"", clips, SendMessageOptions.DontRequireReceiver);
+	ApplyToSharedAmmo();
+	PlayerWeapons.autoFire = autoFire;
 }
 ";
 
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-//TranslateExample();
-TranslateProject();
+TranslateExample();
+//TranslateProject();
