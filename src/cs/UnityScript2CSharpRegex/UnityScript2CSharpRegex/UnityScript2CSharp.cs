@@ -192,6 +192,9 @@ namespace UnityScript2CSharpRegex
             // Add 'f' suffix to decimal numbers
             output = Regex.Replace(output, @"(\d+|)\.(\d+)", "$1.$2f");
 
+            // Remove 'ff'
+            output = Regex.Replace(output, @"(\d+|)\.(\d+)ff", "$1.$2f", RegexOptions.IgnoreCase);
+
             // Replace enum declaration to ensure it is public if it doesn't have an accessibility modifier
             output = Regex.Replace(output, @"enum (\w+)", "public enum $1");
 
@@ -263,7 +266,7 @@ namespace UnityScript2CSharpRegex
             output = output.Replace(" String ", " string ");
 
             // Write keyword 'new', between (, +, -, * or / for Vectors, Color, Rect and Quaternion types.
-            output = Regex.Replace(output, @"(\(|\*|\+|\-|\/)\s*(Vector.|Color|Rect|Quaternion)", "$1 new $2");
+            output = Regex.Replace(output, @"(\(|\*|\+|\-|\/|=)\s*(Vector.|Color|Rect|Quaternion)\s*\(", "$1 new $2");
 
             output = output.Replace("( new", "(new");
 
