@@ -31,6 +31,7 @@ namespace UnityScript2CSharpRegex
 
                 Console.WriteLine($"[Block]\n" +
                                   $"signature: {signature}\n" +
+                                  $"-----------------------\n" +
                                   $"funcBlock\n{funcBlock}");
 
                 // Patrón para encontrar las variables var
@@ -39,10 +40,10 @@ namespace UnityScript2CSharpRegex
 
                 //Console.WriteLine(funcBlock);
 
-                //// Coincidencias para las variables var
-                var varsMatches = Regex.Matches(funcBlock, varsPattern, RegexOptions.Multiline);
+                // Coincidencias para las variables var
+                var varsMatches = Regex.Matches(funcBlock, varsPattern);
 
-                //Console.WriteLine($"Count: {varsMatches.Count}");
+                Console.WriteLine($"Count: {varsMatches.Count}");
 
                 var blockUpdated = Regex.Replace(funcBlock, varsPattern, (m) =>
                 {
@@ -79,7 +80,8 @@ namespace UnityScript2CSharpRegex
 }}";
             }
 
-            var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
+            //var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
+            var regexFunctionBlock =   @"(function\s+\w+\(.*?\)\s*){(.*?^})";
 
             var output = input;
 
