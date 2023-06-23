@@ -69,40 +69,7 @@ function Update(a: b, c: d){
 ";
 
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
-
-    //// Patrón para encontrar las variables var dentro de la función
-    //var patron = @"function\s+\w+\(.*\)\s*{(.*?)^}";
-
-    //// Coincidencia para la función Update
-    //var coincidencia = Regex.Match(input, patron, RegexOptions.Singleline | RegexOptions.Multiline);
-
-    //if (coincidencia.Success)
-    //{
-    //    // Obtener el bloque de la función Update
-    //    var bloqueUpdate = coincidencia.Groups[1].Value;
-
-    //    // Patrón para encontrar las variables var
-    //    var patronVariables = @"var\s+(\w+)\s*(:\s*(\w+))?(?:\s*=\s*(.*?))?;";
-    //    //                         var\s+(\w+)\s*(:\s*(\w+))?\s*=\s*(.*?);
-
-
-    //    // Coincidencias para las variables var
-    //    var coincidenciasVariables = Regex.Matches(bloqueUpdate, patronVariables, RegexOptions.Multiline);
-
-    //    foreach (Match coincidenciaVariable in coincidenciasVariables)
-    //    {
-    //        var nombreVariable = coincidenciaVariable.Groups[1].Value;
-    //        var tipoVariable = coincidenciaVariable.Groups[2].Value;
-    //        var valorVariable = coincidenciaVariable.Groups[3].Value;
-
-    //        Console.WriteLine($"Variable: {nombreVariable}, Tipo: {tipoVariable}, Valor: {valorVariable}");
-    //    }
-    //}
-    //else
-    //{
-    //    Console.WriteLine("No se encontró la función Update");
-    //}
 }
 
-TranslateExample();
-//TranslateProject();
+//TranslateExample();
+TranslateProject();
