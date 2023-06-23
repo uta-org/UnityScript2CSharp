@@ -15,6 +15,7 @@ namespace UnityScript2CSharpRegex
             code =
                 $"using System;\n" +
                 $"using UnityEngine;\n" +
+                $"using System.Collections;\n" +
                 $"using System.Collections.Generic;\n" +
                 $"using Random = UnityEngine.Random;\n" +
                 $"\n" +
@@ -288,7 +289,7 @@ namespace UnityScript2CSharpRegex
                     var newBlock = block;
                     var newSignature = signature.Replace("void", "IEnumerator");
 
-                    newBlock = newBlock.Replace("yield ", "yield new ");
+                    newBlock = newBlock.Replace("yield ", "yield return new ");
                     newBlock = newBlock.Replace("return;", "yield break;");
 
                     output = output.Replace(signature, newSignature);
