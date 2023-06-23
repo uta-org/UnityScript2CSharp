@@ -267,7 +267,7 @@ namespace UnityScript2CSharpRegex
             output = output.Replace(" String ", " string ");
 
             // Write keyword 'new', between (, +, -, * or / for Vectors, Color, Rect and Quaternion types.
-            output = Regex.Replace(output, @"(\(|\*|\+|\-|\/|=)\s*(Vector.|Color|Rect|Quaternion)\s*\(", "$1 new $2");
+            output = Regex.Replace(output, @"(\(|\*|\+|\-|\/|=)\s*(Vector.|Color|Rect|Quaternion)\s*\(", "$1 new $2(");
 
             output = output.Replace("( new", "(new");
 
