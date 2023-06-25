@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace UnityScript2CSharpRegex
@@ -34,9 +35,9 @@ namespace UnityScript2CSharpRegex
                 var signature = match.Groups[1].Value;
                 var funcBlock = match.Groups[2].Value;
 
-                Console.WriteLine($"[Block]\n" +
+                Console.WriteLine("[Block]\n" +
                                   $"signature: {signature}\n" +
-                                  $"-----------------------\n" +
+                                  "-----------------------\n" +
                                   $"funcBlock\n{funcBlock}");
 
                 // Pattern to find vars
@@ -73,18 +74,27 @@ namespace UnityScript2CSharpRegex
                 }, multiline);
 
                 return $@"{signature} {{
-    {blockUpdated}";
+    {blockUpdated}
+}}";
             }
 
             //var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
-            var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
+
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
+            var regexFunctionBlock =   @"(function\s+\w+\s*\(.*?\)\s*){([^}]*)}";
 
             var output = input;
 
-            if (Regex.Match(input, regexFunctionBlock, multiline).Success)
+            var mmm = Regex.Matches(input, regexFunctionBlock, RegexOptions.Multiline);
+            if (mmm.Count > 0)
+            {
+                Console.WriteLine($"Matches count: {mmm.Count}");
+                Console.WriteLine($"Matches: {string.Join("\n-------------------\n", mmm.Select(m => m.Value))}");
                 output = Regex.Replace(output, regexFunctionBlock, ReplaceVariableTypesInsideFunctions, multiline);
-
-            //Console.WriteLine(output);
+            }
+            else
+                Console.WriteLine("Not matching!");
 
             // Replacement function to convert variable declaration to C#
             string ReplaceVariable(Match match)
