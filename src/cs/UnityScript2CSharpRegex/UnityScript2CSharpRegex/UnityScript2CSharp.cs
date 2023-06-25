@@ -13,12 +13,12 @@ namespace UnityScript2CSharpRegex
             var code = Translate(unityScript);
 
             code =
-                $"using System;\n" +
-                $"using UnityEngine;\n" +
-                $"using System.Collections;\n" +
-                $"using System.Collections.Generic;\n" +
-                $"using Random = UnityEngine.Random;\n" +
-                $"\n" +
+                "using System;\n" +
+                "using UnityEngine;\n" +
+                "using System.Collections;\n" +
+                "using System.Collections.Generic;\n" +
+                "using Random = UnityEngine.Random;\n" +
+                "\n" +
                 $"public class {fileName.GetString("{ReplaceMe}")} : MonoBehaviour\n{{\n\t{code.Replace("\n", "\n\t")}\n}}";
 
             return code;
@@ -48,7 +48,7 @@ namespace UnityScript2CSharpRegex
                     var type = m.Groups[2].Value;
                     var rest = m.Groups[3].Value;
 
-                    Console.WriteLine($"[ScopedVariables]\n" +
+                    Console.WriteLine("[ScopedVariables]\n" +
                                       $"name: {name}\n" +
                                       $"type: {type}\n" +
                                       $"rest: {rest}");
@@ -94,7 +94,7 @@ namespace UnityScript2CSharpRegex
                 var type = match.Groups[3].Value;
                 var rest = match.Groups[4].Value;
 
-                Console.WriteLine($"[Variable]\n" +
+                Console.WriteLine("[Variable]\n" +
                                   $"visibility: {visibility}\n" +
                                   $"name: {name}\n" +
                                   $"type: {type}\n" +
@@ -148,7 +148,7 @@ namespace UnityScript2CSharpRegex
 
                 var mm = match.Value;
 
-                Console.WriteLine($"[Types]\n" +
+                Console.WriteLine("[Types]\n" +
                                   $"visibility: {visibility}\n" +
                                   $"name: {name}\n" +
                                   $"value: {value}\n" +

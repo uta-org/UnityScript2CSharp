@@ -13,9 +13,10 @@ using static UnityScript2CSharpRegex.Properties.Resources;
 // var outputPath = @"A:\VIZZUTA\Unity\Tests\dummy-shooter\Assets\ThirdParty\Weapons";
 void TranslateProject()
 {
-    var outputPath = @"C:\Users\arodriguezg\Unity3D\Dummy-Shooter\Assets\ThirdParty\Weapons";
+    //var outputPath = "A:\\VIZZUTA\\Unity\\Tests\\dummy-shooter\\Assets\\ThirdParty\\Weapons";
+    var outputPath = "A:\\VIZZUTA\\Unity\\Tests\\dummy-shooter\\Assets\\ThirdParty\\Weapons";
 
-    var zipData = FPS_Constructor_V1;
+	var zipData = FPS_Constructor_V1;
     using var memoryStream = new MemoryStream(zipData);
     using var archive = new ZipArchive(memoryStream);
     foreach (var entry in archive.Entries)
@@ -53,6 +54,38 @@ void TranslateProject()
 
 void TranslateExample()
 {
+    //    var input = @"
+    //	private var targetPosition : Vector3;
+    //	private var curTarget : Vector3;
+    //	private var lastTarget : Vector3;
+
+    //	function Freeze() {
+    //		freeze = true;
+    //	}
+
+    //	function UnFreeze() {
+    //		freeze = false;
+    //	}
+
+
+    //	function Update () {
+    //		if(freeze || !PlayerWeapons.playerActive) return;
+
+    //		if(retSensitivity > 0)
+    //			retSensitivity*=-1;
+
+    //		if(useLookMotion && PlayerWeapons.canLook) {
+    //			var xQuaternion : Quaternion;
+    //			var yQuaternion : Quaternion;
+    //        }
+    //    }
+
+    //function Update () {
+    //    var xQuaternion : Quaternion;
+    //	var yQuaternion : Quaternion;
+    //}
+    //";
+
     var input = @"
 #pragma strict
 /*
@@ -281,9 +314,9 @@ void TranslateExample()
 
 ";
 
-	// TODO: public Quaternion, maybe because of the identation, but isn't detected
+    // TODO: public Quaternion, maybe because of the identation, but isn't detected
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-//TranslateExample();
-TranslateProject();
+TranslateExample();
+//TranslateProject();
