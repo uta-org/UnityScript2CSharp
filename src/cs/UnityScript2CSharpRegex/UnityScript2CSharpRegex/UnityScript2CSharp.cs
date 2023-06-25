@@ -85,8 +85,8 @@ namespace UnityScript2CSharpRegex
             var mmm = Regex.Matches(input, regexFunctionBlock, RegexOptions.Multiline);
             if (mmm.Count > 0)
             {
-                //Console.WriteLine($"Matches count: {mmm.Count}");
-                //Console.WriteLine($"Matches: {string.Join("\n-------------------\n", mmm.Select(m => m.Value))}");
+                Console.WriteLine($"Matches count: {mmm.Count}");
+                Console.WriteLine($"Matches: {string.Join("\n-------------------\n", mmm.Select(m => m.Value))}");
                 output = Regex.Replace(output, regexFunctionBlock, ReplaceVariableTypesInsideFunctions, multiline);
             }
             else

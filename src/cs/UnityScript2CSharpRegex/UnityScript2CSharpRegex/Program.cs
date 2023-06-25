@@ -55,75 +55,86 @@ void TranslateProject()
 void TranslateExample()
 {
     var input = @"
-function test() {
-    var xQuaternion : Quaternion;
+//FPS Constructor - Weapons
+//Copyright© Dastardly Banana Productions 2010
+//This script is distributed exclusively through ActiveDen and it's use is restricted to the terms of the ActiveDen 
+//licensing agreement.
+//
+// Questions should be addressed to info@dastardlybanana.com
+//
+class WeaponClassArrayType{
+	var weaponClass : String;
+	var WeaponInfoArray : WeaponInfo[];
 }
 
-    function Update () {
-        if(freeze || !PlayerWeapons.playerActive) return;
-        
-        if(retSensitivity > 0)
-            retSensitivity*=-1;
-    
-        if(useLookMotion && PlayerWeapons.canLook) {
-            var xQuaternion : Quaternion;
-            var yQuaternion : Quaternion;
+static var storeActive : boolean = false;
+static var canActivate : boolean = true;
+static var singleton : DBStoreController;
 
-            rotationZ = ClampAngle (rotationZ, -actualZRange,  actualZRange);
-            if(Mathf.Abs(Input.GetAxis(""Mouse X"")) <.05){
-                if(sensitivityX > 0){
-                } else {
-                }
-            }
-                
-            xQuaternion = Quaternion.AngleAxis (rotationX, Vector3.up);
-            var zQuaternion : Quaternion = Quaternion.AngleAxis (rotationZ, Vector3.forward);
-            yQuaternion = Quaternion.AngleAxis (rotationY, Vector3.left);
-                
-            transform.localRotation = Quaternion.Lerp(transform.localRotation ,originalRotation * xQuaternion * yQuaternion *zQuaternion, Time.deltaTime*10);
-        }
-        
-        if(useWalkMotion){
-            //Velocity-based changes
-            var relVelocity : Vector3 = transform.InverseTransformDirection(PlayerWeapons.CM.movement.velocity);            
-            var zVal : float;
-            var xVal : float;
-            var xVal2 : float;
-            
-            lastOffset = posOffset;
-            
-            var s : float = Vector3(PlayerWeapons.CM.movement.velocity.x, 0, PlayerWeapons.CM.movement.velocity.z).magnitude/14;
-    
-            
-            if(!AimMode.staticAiming){                
-                var xPos : float = Mathf.Clamp(relVelocity.x*xPosMoveSensitivity, -xPosMoveRange*s, xPosMoveRange*s);
-                posOffset.x = Mathf.Lerp(posOffset.x, xPos, Time.deltaTime*xPosAdjustSpeed);// + startPos.x;
-                
-                var zPos : float = Mathf.Clamp(relVelocity.z*zPosMoveSensitivity, -zPosMoveRange*s, zPosMoveRange*s);
-                posOffset.z = Mathf.Lerp(posOffset.z, zPos, Time.deltaTime*zPosAdjustSpeed);// + startPos.z;
-                
-            } else {
-                posOffset.x = Mathf.Lerp(posOffset.x, 0, Time.deltaTime*xPosAdjustSpeed*3);// + startPos.x;
-                posOffset.z = Mathf.Lerp(posOffset.z, 0, Time.deltaTime*zPosAdjustSpeed*3);// + startPos.z;
-                            
-            }
-            
-            //Apply Jostle
-            lastJostle = curJostle;
-            curJostle = Vector3.Lerp(curJostle, jostleAmt, Time.deltaTime*10);
-            jostleAmt = Vector3.Lerp(jostleAmt, Vector3.zero, Time.deltaTime*3);
-                        
-            lastTarget = curTarget;
-            curTarget = Vector3.Lerp(curTarget, posOffset, Time.deltaTime*8);
-            
-            transform.localPosition += curTarget - lastTarget;
-            transform.localPosition += curJostle - lastJostle;
-        }
-    }";
+ var balance: float; // Store account balance 
+ 
+ //var scrollPosition : Vector2;
+@HideInInspector var WeaponInfoArray : WeaponInfo[] ;
+@HideInInspector var WeaponInfoByClass :WeaponClassArrayType[];
+@HideInInspector var weaponClassNames : String[];
+@HideInInspector var weaponClassNamesPopulated : String [];
+@HideInInspector var playerW : PlayerWeapons;
+@HideInInspector var nullWeapon : GameObject; //there must be one null weapon as a placeholder to put in an empty slot.
+@HideInInspector var slotInfo: SlotInfo;
+var canExitWhileEmpty : boolean = false;
+static var inStore : boolean = false;
+ 
+function Initialize() {
+	singleton = this;
+	playerW = FindObjectOfType(PlayerWeapons) as PlayerWeapons;
+	slotInfo = FindObjectOfType(SlotInfo) as SlotInfo;		
+	WeaponInfoArray = FindObjectsOfType(WeaponInfo) as WeaponInfo[];
+	for(var w : WeaponInfo in WeaponInfoArray) {
+		if(w.weaponClass == weaponClasses.Null) 
+			nullWeapon = w.gameObject;
+	}
+	setupWeaponClassNames();
+	setupWeaponInfoByClass();
+}
+
+
+function getNumOwned(slot: int) {
+	//will use the slot info later to restrict count
+	var n : int = 0;
+	for (var i: int = 0; i < WeaponInfoArray.length; i++) {
+		if(WeaponInfoArray[i].owned && slotInfo.isWeaponAllowed(slot,WeaponInfoArray[i]))
+			n++;
+	}
+	return n;
+}
+
+function getWeaponNamesOwned(slot : int) : String[] {
+	var names : String[] = new String[getNumOwned(slot)];
+	var n : int = 0;
+	for (var i: int = 0; i <  WeaponInfoArray.length; i++) {
+		if(WeaponInfoArray[i].owned && slotInfo.isWeaponAllowed(slot,WeaponInfoArray[i])){
+			names[n] = WeaponInfoArray[i].gunName;
+			n++;
+		}
+	}
+	return names;
+}
+
+function getWeaponsOwned(slot : int) : WeaponInfo[] {
+	var w : WeaponInfo[] = new WeaponInfo[getNumOwned(slot)];
+	var n : int = 0;
+	for (var i: int = 0; i <  WeaponInfoArray.length; i++) {
+		if(WeaponInfoArray[i].owned && slotInfo.isWeaponAllowed(slot,WeaponInfoArray[i])){
+			w[n] = WeaponInfoArray[i];
+			n++;
+		}
+	}
+	return w;
+}";
 
     // TODO: public Quaternion, maybe because of the identation, but isn't detected
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-//TranslateExample();
-TranslateProject();
+TranslateExample();
+//TranslateProject();
