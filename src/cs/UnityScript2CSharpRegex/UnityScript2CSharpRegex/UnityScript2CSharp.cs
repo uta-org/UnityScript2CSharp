@@ -83,7 +83,10 @@ namespace UnityScript2CSharpRegex
             //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
 
             //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){([^}]*)}";
-            var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*:*\s*\w*\[*\]*\s*){([^}]*)}";
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*:*\s*\w*\[*\]*\s*){([^}]*)}";
+            var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*:*\s*\w*\[*\]*\s*){((?>[^{}]+|(?<open>{)|(?<-open>}))*)(?(open)(?!))}";
+
+            // {((?>[^{}]+|(?<open>{)|(?<-open>}))*)(?(open)(?!))}
 
             var output = input;
 
