@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace UnityScript2CSharpRegex
@@ -73,12 +72,18 @@ namespace UnityScript2CSharpRegex
                     return s;
                 }, multiline);
 
-                return $@"{signature} {{
+                return $@"{signature}{{
     {blockUpdated}
 }}";
             }
 
-            var regexFunctionBlock =   @"(function\s+\w+\s*\(.*?\)\s*){([^}]*)}";
+            // Not working, but at least we could test them...
+            //var regexFunctionBlock = @"(function\s+\w+\(.*\)\s*){(.*?)^}";
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){(.*?^})";
+
+            //var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*){([^}]*)}";
+            var regexFunctionBlock = @"(function\s+\w+\s*\(.*?\)\s*:*\s*\w*\[*\]*\s*){([^}]*)}";
 
             var output = input;
 
