@@ -273,6 +273,7 @@ namespace UnityScript2CSharpRegex
             output = Regex.Replace(output, @"\.ToBuiltin\(.+?\)", ".ToArray()");
 
             // Reorder static public into public static (ie)
+            // TODO: this can be problematic... Check public/private...
             output = Regex.Replace(output, @"static (\w+)", "$1 static");
 
             // for into foreach

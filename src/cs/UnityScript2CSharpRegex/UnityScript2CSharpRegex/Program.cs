@@ -202,5 +202,5 @@ function getWeaponsOwned(slot : int) : WeaponInfo[]
     Console.WriteLine(UnityScript2CSharp.TranslateCode(input));
 }
 
-TranslateExample();
-//TranslateProject();
+//TranslateExample();
+TranslateProject();
